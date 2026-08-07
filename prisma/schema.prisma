@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  FIELD
+  COMMITTEE
+  ADMIN
+}
+
+enum DefectSeverity {
+  URGENT
+  MAJOR
+  MINOR
+}
+
+enum DefectStatus {
+  OPEN
+  FIXED
+  CLOSED
+}
+
+enum EvidenceKind {
+  LOCATION
+  LABEL
+  CONFIG
+  FUNCTIONAL
+  PERFORMANCE
+  DOCS
+}
+
+model User {
+  id           String       @id @default(cuid())
+  username     String       @unique
+  passwordHash String
+  name         String
+  role         UserRole     @default(FIELD)
+  team         String?
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  inspections  Inspection[]
+  auditLogs    AuditLog[]
+}
+
+model Project {
+  id          String     @id @default(cuid())
+  name        String
+  contractNo  String
+  torRef      String
+  totalPoints Int
+  createdAt   DateTime   @default(now())
+  buildings   Building[]
+  criteria    Criteria[]
+}
+
+model Building {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code      String
+  name      String
+  points    Point[]
+
+  @@unique([projectId, code])
+}
+
+model Point {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  buildingId  String
+  building    Building     @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  floor       String
+  room        String
+  deviceModel String?
+  serial      String?
+  mac         String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  inspections Inspection[]
+  defects     Defect[]
+  planItems   PlanItem[]
+
+  @@index([buildingId])
+  @@index([serial])
+}
+
+model Criteria {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  key       String
+  label     String
+  operator  String // "gte" | "lte"
+  threshold Float
+  unit      String
+  torClause String
+
+  @@unique([projectId, key])
+}
+
+model Inspection {
+  id            String     @id @default(cuid())
+  clientUuid    String     @unique
+  pointId       String
+  point         Point      @relation(fields: [pointId], references: [id], onDelete: Cascade)
+  inspectorId   String
+  inspector     User       @relation(fields: [inspectorId], references: [id])
+  inspectedAt   DateTime
+  measurements  Json
+  note          String?
+  serial        String?
+  mac           String?
+  createdAt     DateTime   @default(now())
+  evidences     Evidence[]
+  defectsOpened Defect[]   @relation("DefectOpenedBy")
+  defectsClosed Defect[]   @relation("DefectClosedBy")
+
+  @@index([pointId, inspectedAt])
+}
+
+model Evidence {
+  id           String       @id @default(cuid())
+  inspectionId String
+  inspection   Inspection   @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  kind         EvidenceKind
+  filePath     String
+  mime         String
+  size         Int
+  sha256       String
+  capturedAt   DateTime
+  createdAt    DateTime     @default(now())
+
+  @@index([inspectionId])
+}
+
+model Defect {
+  id                  String         @id @default(cuid())
+  pointId             String
+  point               Point          @relation(fields: [pointId], references: [id], onDelete: Cascade)
+  inspectionId        String
+  inspection          Inspection     @relation("DefectOpenedBy", fields: [inspectionId], references: [id], onDelete: Cascade)
+  severity            DefectSeverity
+  title               String
+  detail              String
+  owner               String?
+  dueDate             DateTime?
+  status              DefectStatus   @default(OPEN)
+  closingInspectionId String?
+  closingInspection   Inspection?    @relation("DefectClosedBy", fields: [closingInspectionId], references: [id])
+  closedAt            DateTime?
+  closedById          String?
+  createdAt           DateTime       @default(now())
+
+  @@index([status, severity])
+  @@index([pointId])
+}
+
+model Plan {
+  id        String     @id @default(cuid())
+  date      DateTime   @db.Date
+  team      String
+  note      String?
+  gates     Json
+  createdAt DateTime   @default(now())
+  items     PlanItem[]
+
+  @@unique([date, team])
+}
+
+model PlanItem {
+  id      String    @id @default(cuid())
+  planId  String
+  plan    Plan      @relation(fields: [planId], references: [id], onDelete: Cascade)
+  pointId String
+  point   Point     @relation(fields: [pointId], references: [id], onDelete: Cascade)
+  order   Int
+  doneAt  DateTime?
+
+  @@unique([planId, pointId])
+}
+
+model AuditLog {
+  id       String   @id @default(cuid())
+  actorId  String?
+  actor    User?    @relation(fields: [actorId], references: [id])
+  entity   String
+  entityId String
+  action   String
+  payload  Json?
+  at       DateTime @default(now())
+
+  @@index([entity, entityId])
+}

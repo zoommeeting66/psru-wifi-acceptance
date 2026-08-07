@@ -1,0 +1,42 @@
+.m-body { max-width: 640px; margin: 0 auto; padding: 0 0 96px; }
+.m-top {
+  position: sticky; top: 0; z-index: 10; background: var(--sidebar); color: #fff;
+  padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+}
+.m-top b { font-size: 16px; }
+.m-sync { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.m-sync .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.m-sync.clear .dot { background: #3fbf8f; }
+.m-sync button { background: rgba(255,255,255,.12); border: 0; color: #fff; border-radius: 8px; padding: 6px 10px; }
+
+.m-list { padding: 14px 14px 0; display: grid; gap: 10px; }
+.m-item {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; text-align: left;
+}
+.m-item b { font-size: 17px; }
+.m-item .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+.m-form { padding: 14px; display: grid; gap: 14px; }
+.m-field { display: grid; gap: 6px; }
+.m-field label { font-weight: 600; }
+.m-field .hint { color: var(--muted); font-size: 13px; }
+.m-field input, .m-field textarea, .m-field select {
+  width: 100%; border: 1px solid #cfd9d6; border-radius: 10px; padding: 13px; font-size: 16px; background: #fff;
+}
+.m-photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.m-photo {
+  border: 1.5px dashed #c2cfcb; border-radius: 12px; padding: 12px; text-align: center;
+  background: #fff; min-height: 116px; display: grid; place-items: center; gap: 6px; font-size: 13px;
+}
+.m-photo.filled { border-style: solid; border-color: var(--primary); }
+.m-photo img { width: 100%; height: 64px; object-fit: cover; border-radius: 8px; }
+.m-photo input { display: none; }
+
+.m-submit {
+  position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 14px;
+  background: rgba(245,247,246,.96); border-top: 1px solid var(--line);
+}
+.m-submit button { width: 100%; padding: 16px; font-size: 17px; border-radius: 12px; border: 0; background: var(--primary); color: #fff; font-weight: 600; }
+.m-msg { padding: 0 14px; color: var(--fail-ink); }
+.m-done { color: var(--pass-ink); font-weight: 600; }

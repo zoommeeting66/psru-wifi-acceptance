@@ -1,0 +1,41 @@
+@font-face {
+  font-family: "IBM Plex Sans Thai";
+  src: url("../fonts/IBMPlexSansThai-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans Thai";
+  src: url("../fonts/IBMPlexSansThai-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+
+:root {
+  --sidebar: #0e2e2b;
+  --sidebar-active: #17403c;
+  --sidebar-text: #c6d8d4;
+  --bg: #f5f7f6;
+  --surface: #ffffff;
+  --line: #e4e9e7;
+  --ink: #16302c;
+  --muted: #6b7d79;
+  --primary: #0e8a6b;
+  --primary-dark: #0b7259;
+  --accent: #e8b84b;
+
+  --pass-bg: #dff3e9;
+  --pass-ink: #12764f;
+  --fail-bg: #fce4e4;
+  --fail-ink: #b03a3a;
+  --warn-bg: #fcf0d8;
+  --warn-ink: #8a6100;
+  --idle-bg: #eceff0;
+  --idle-ink: #5c6b68;
+  --notice-bg: #fdf8ec;
+
+  --radius: 14px;
+  --shadow: 0 8px 24px rgba(14, 46, 43, 0.07);
+  --sidebar-w: 260px;
+  --content-max: 1440px;
+}
