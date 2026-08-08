@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ระบบสนับสนุนการตรวจรับ Wi-Fi 1,000 จุด · PSRU</title>
+<meta name="description" content="ระบบควบคุมหลักฐานการตรวจรับเครือข่ายไร้สาย 1,000 จุด — บันทึกภาคสนามแบบออฟไลน์ จัดการข้อบกพร่อง และออกเอกสารเสนอคณะกรรมการ">
+<style>
+:root{
+  --sidebar:#0e2e2b; --sidebar-active:#17403c; --sidebar-text:#c6d8d4;
+  --bg:#f5f7f6; --surface:#fff; --line:#e4e9e7; --ink:#16302c; --muted:#6b7d79;
+  --primary:#0e8a6b; --accent:#e8b84b;
+  --pass-bg:#dff3e9; --pass-ink:#12764f; --fail-bg:#fce4e4; --fail-ink:#b03a3a;
+  --warn-bg:#fcf0d8; --warn-ink:#8a6100; --idle-bg:#eceff0; --idle-ink:#5c6b68;
+  --notice-bg:#fdf8ec; --radius:14px; --shadow:0 8px 24px rgba(14,46,43,.07);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font:15px/1.6 "IBM Plex Sans Thai","Noto Sans Thai",system-ui,-apple-system,sans-serif}
+a{color:var(--primary)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+header.hero{background:var(--sidebar);color:#fff;padding:44px 0 52px}
+.brandrow{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.mark{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;
+  background:var(--accent);color:var(--sidebar);font-weight:600;font-size:21px}
+.brandname{font-weight:600;font-size:17px;color:#fff}
+.brandsub{font-size:11px;letter-spacing:.09em;text-transform:uppercase;opacity:.65}
+header.hero h1{margin:0 0 12px;font-size:clamp(25px,4vw,38px);font-weight:600;line-height:1.25}
+header.hero p{margin:0;max-width:64ch;color:#c6d8d4;font-size:16px}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.btn{border:0;border-radius:10px;padding:11px 19px;font-weight:600;font-size:15px;
+  text-decoration:none;display:inline-block}
+.btn.solid{background:var(--primary);color:#fff}
+.btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25)}
+
+.notice{background:var(--notice-bg);border:1px solid #f0e2bf;border-radius:12px;
+  padding:15px 18px;margin:26px 0;font-size:14.5px}
+.notice b{color:#7a5c00}
+.demoflag{display:inline-flex;align-items:center;gap:7px;background:var(--warn-bg);
+  color:var(--warn-ink);border-radius:999px;padding:5px 13px;font-size:13px;font-weight:600}
+.demoflag::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+section{padding:40px 0}
+h2.sec{font-size:23px;font-weight:600;margin:0 0 6px}
+p.seclead{color:var(--muted);margin:0 0 22px;max-width:70ch}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow)}
+.pad{padding:20px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.kpi-top{display:flex;align-items:center;gap:11px}
+.kpi-mark{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+  color:#fff;font-weight:600;font-size:15px}
+.a{background:var(--sidebar)}.b{background:var(--primary)}
+.c{background:#c9922e}.d{background:#c0504e}
+.kpi-label{color:var(--muted);font-size:14px}
+.kpi-value{font-size:34px;font-weight:600;line-height:1.1;margin:9px 0 3px}
+.kpi-note{color:var(--muted);font-size:13px}
+.bar{height:6px;border-radius:999px;background:#e7ecea;overflow:hidden;margin-top:9px}
+.bar>i{display:block;height:100%;background:var(--primary)}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:15px;margin-top:15px}
+.gates{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:17px}
+.gate{border-left:2px solid var(--line);padding-left:11px}
+.gate b{display:block;font-weight:600;font-size:14.5px}
+
+.chip{display:inline-flex;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:600}
+.pass{background:var(--pass-bg);color:var(--pass-ink)}
+.fail{background:var(--fail-bg);color:var(--fail-ink)}
+.warn{background:var(--warn-bg);color:var(--warn-ink)}
+.idle{background:var(--idle-bg);color:var(--idle-ink)}
+
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{text-align:left;padding:12px 15px;border-bottom:1px solid #eef2f1}
+th{color:var(--muted);font-size:13px;font-weight:400}
+
+.props{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:15px}
+.prop{padding:19px}
+.prop h3{margin:0 0 7px;font-size:16.5px;font-weight:600}
+.prop p{margin:0;color:var(--muted);font-size:14.5px}
+.prop .num{display:inline-grid;place-items:center;width:25px;height:25px;border-radius:7px;
+  background:var(--pass-bg);color:var(--pass-ink);font-size:13px;font-weight:600;margin-bottom:9px}
+
+.stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.tag{background:var(--surface);border:1px solid var(--line);border-radius:8px;
+  padding:6px 12px;font-size:13.5px}
+
+footer{background:var(--sidebar);color:var(--sidebar-text);padding:32px 0;margin-top:22px;font-size:14px}
+footer a{color:#fff}
+
+@media(max-width:960px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}
+  .gates{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="mark">W</div>
+      <div>
+        <div class="brandname">WiFi Accept</div>
+        <div class="brandsub">PSRU Inspection</div>
+      </div>
+    </div>
+    <h1>ระบบสนับสนุนการตรวจรับเครือข่าย Wi-Fi 1,000 จุด</h1>
+    <p>ช่างภาคสนามบันทึกผลตรวจและถ่ายรูปหลักฐานผ่านมือถือโดยไม่ต้องมีสัญญาณ
+       คณะกรรมการตรวจรับติดตามความคืบหน้า จัดการข้อบกพร่อง และออกเอกสารสรุปเสนอลงนาม</p>
+    <div class="cta">
+      <a class="btn solid" href="https://github.com/zoommeeting66/psru-wifi-acceptance">ดูซอร์สโค้ดบน GitHub</a>
+      <a class="btn ghost" href="RUNBOOK.md">คู่มือปฏิบัติการ</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="notice" style="margin-top:26px">
+    <b>หมายเหตุสำคัญ:</b>
+    ระบบไม่ตัดสินผลการตรวจรับแทนคณะกรรมการ ค่าที่แสดงเป็นการเทียบผลที่วัดได้กับเกณฑ์ที่อ้างอิงจาก TOR/สัญญา
+    การตรวจรับเป็นอำนาจของคณะกรรมการตรวจรับพัสดุ
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+      <div>
+        <h2 class="sec">ภาพหน้าจอ: ภาพรวมของคณะกรรมการ</h2>
+        <p class="seclead">หน้าจอจริงของระบบ แสดงด้วยข้อมูลสมมติเพื่อการนำเสนอเท่านั้น</p>
+      </div>
+      <span class="demoflag">ข้อมูลตัวอย่าง ไม่ใช่ผลตรวจรับจริง</span>
+    </div>
+
+    <div class="kpis">
+      <div class="card pad">
+        <div class="kpi-top"><div class="kpi-mark a">จ</div><div class="kpi-label">จุดทั้งหมด</div></div>
+        <div class="kpi-value">1,000</div>
+        <div class="kpi-note">ครบตามทะเบียนโครงการ</div>
+      </div>
+      <div class="card pad">
+        <div class="kpi-top"><div class="kpi-mark b">ต</div><div class="kpi-label">ตรวจแล้ว</div></div>
+        <div class="kpi-value">680</div>
+        <div class="kpi-note">68% ของแผนทั้งหมด</div>
+        <div class="bar"><i style="width:68%"></i></div>
+      </div>
+      <div class="card pad">
+        <div class="kpi-top"><div class="kpi-mark c">ร</div><div class="kpi-label">รอตรวจ</div></div>
+        <div class="kpi-value">273</div>
+        <div class="kpi-note">27.3% ยังไม่ลงพื้นที่</div>
+        <div class="bar"><i style="width:27%"></i></div>
+      </div>
+      <div class="card pad">
+        <div class="kpi-top"><div class="kpi-mark d">พ</div><div class="kpi-label">พบข้อบกพร่อง</div></div>
+        <div class="kpi-value">47</div>
+        <div class="kpi-note">ต้องแก้ไข / ตรวจซ้ำ</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card pad">
+        <div class="kpi-label">แผนงานวันนี้</div>
+        <h3 style="margin:7px 0 15px;font-size:21px;font-weight:600">ความคืบหน้าการตรวจภาคสนาม</h3>
+        <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap">
+          <div style="background:var(--sidebar);color:#fff;border-radius:12px;padding:13px 17px;text-align:center;min-width:90px">
+            <div style="font-size:25px;font-weight:600">06</div>
+            <div style="font-size:12px;opacity:.75">ทีม A</div>
+          </div>
+          <div style="flex:1;min-width:210px">
+            <div style="font-weight:600">อาคารทีปวิชญ์ · 120 จุด</div>
+            <div class="bar" style="margin:9px 0 5px"><i style="width:72%"></i></div>
+            <div class="kpi-note">ตรวจแล้ว 86 จาก 120 จุด</div>
+          </div>
+        </div>
+        <div class="gates">
+          <div class="gate"><div class="kpi-note">Gate 1</div><b>ตรวจเอกสาร</b>
+            <div class="kpi-note" style="color:var(--pass-ink)">ครบ</div></div>
+          <div class="gate"><div class="kpi-note">Gate 2</div><b>ตรวจหน้างาน</b>
+            <div class="kpi-note" style="color:var(--warn-ink)">กำลังดำเนินการ</div></div>
+          <div class="gate"><div class="kpi-note">Gate 3</div><b>ทดสอบระบบ</b>
+            <div class="kpi-note">รอดำเนินการ</div></div>
+          <div class="gate"><div class="kpi-note">Gate 4</div><b>สรุปผล</b>
+            <div class="kpi-note">รอดำเนินการ</div></div>
+        </div>
+      </div>
+
+      <div class="card pad">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="kpi-label">ต้องดำเนินการ</div><span class="chip fail">47</span>
+        </div>
+        <h3 style="margin:7px 0 13px;font-size:21px;font-weight:600">ข้อบกพร่องคงค้าง</h3>
+        <div style="padding:11px 0;border-top:1px solid var(--line)">
+          <div style="display:flex;gap:9px;align-items:baseline">
+            <span class="chip fail">เร่งด่วน</span><b>8 รายการ</b>
+          </div>
+          <div class="kpi-note" style="margin-top:5px">จุดไม่ออนไลน์ · กระทบการทดสอบจากส่วนกลาง</div>
+        </div>
+        <div style="padding:11px 0;border-top:1px solid var(--line)">
+          <div style="display:flex;gap:9px;align-items:baseline">
+            <span class="chip warn">สำคัญ</span><b>21 รายการ</b>
+          </div>
+          <div class="kpi-note" style="margin-top:5px">สัญญาณต่ำกว่าเกณฑ์ · รอยืนยันและตรวจซ้ำ</div>
+        </div>
+        <div style="padding:11px 0;border-top:1px solid var(--line)">
+          <div style="display:flex;gap:9px;align-items:baseline">
+            <span class="chip pass">ทั่วไป</span><b>18 รายการ</b>
+          </div>
+          <div class="kpi-note" style="margin-top:5px">หลักฐานไม่ครบ · ขาดภาพหรือผลทดสอบ</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:15px">
+      <div style="padding:18px 20px 3px">
+        <div class="kpi-label">ทะเบียนตรวจรับ</div>
+        <h3 style="margin:5px 0 0;font-size:21px;font-weight:600">จุดติดตั้งล่าสุด</h3>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>รหัสจุด</th><th>สถานที่</th><th>สถานะ</th><th>หลักฐาน</th><th>ค่าที่วัดได้</th></tr></thead>
+          <tbody>
+            <tr><td><b>AP-0001</b></td><td>อาคารทีปวิชญ์ · ชั้น 1</td>
+              <td><span class="chip pass">หลักฐานครบ</span></td><td>6/6</td><td>RSSI −51 dBm</td></tr>
+            <tr><td><b>AP-0002</b></td><td>อาคารทีปวิชญ์ · ชั้น 2</td>
+              <td><span class="chip fail">มีข้อบกพร่อง</span></td><td>6/6</td><td>RSSI −76 dBm</td></tr>
+            <tr><td><b>AP-0003</b></td><td>อาคารคณะวิทยาศาสตร์ · ชั้น 3</td>
+              <td><span class="chip warn">รอตรวจซ้ำ</span></td><td>5/6</td><td>RSSI −68 dBm</td></tr>
+            <tr><td><b>AP-0004</b></td><td>หอสมุดกลาง · ชั้น 1</td>
+              <td><span class="chip idle">รอตรวจ</span></td><td>0/6</td><td>—</td></tr>
+            <tr><td><b>AP-0005</b></td><td>หอประชุมศรีวชิรโชติ · ชั้น 1</td>
+              <td><span class="chip pass">หลักฐานครบ</span></td><td>6/6</td><td>RSSI −57 dBm</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kpi-note" style="padding:13px 20px">
+        คอลัมน์ “ค่าที่วัดได้” เทียบกับเกณฑ์ TOR (ตัวอย่าง: ไม่น้อยกว่า −67 dBm) ระบบชี้เฉพาะค่าที่ต่ำกว่าเกณฑ์
+        และไม่สรุปว่าผ่านหรือไม่ผ่านการตรวจรับ
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <h2 class="sec">หลักการที่เป็นแกนของระบบ</h2>
+    <p class="seclead">เรียงตามความเสียหายที่จะเกิดขึ้นถ้าส่วนนั้นทำงานผิด</p>
+    <div class="props">
+      <div class="card prop"><span class="num">1</span>
+        <h3>ไม่ตัดสินแทนคณะกรรมการ</h3>
+        <p>ไม่มีที่ใดในระบบระบุว่าจุดใดผ่านหรือไม่ผ่านการตรวจรับ คำว่า “หลักฐานครบ” หมายถึงหลักฐาน 6 ประเภทครบเท่านั้น</p>
+      </div>
+      <div class="card prop"><span class="num">2</span>
+        <h3>บันทึกแบบเพิ่มอย่างเดียว</h3>
+        <p>ผลตรวจผูกกับ <code>clientUuid</code> ที่มือถือสร้าง ส่งคิวซ้ำกี่ครั้งก็ไม่เกิดข้อมูลซ้ำและไม่เขียนทับของเดิม สถานะของจุดเป็นค่าที่คำนวณ ไม่ใช่ค่าที่เก็บไว้</p>
+      </div>
+      <div class="card prop"><span class="num">3</span>
+        <h3>งานที่เข้าคิวแล้วไม่หายเงียบ</h3>
+        <p>ส่งไม่สำเร็จจะถอยเวลาแล้วลองใหม่ ไม่ลบทิ้ง อัปโหลดรูปที่สำเร็จแล้วจะไม่ถูกส่งซ้ำ และช่างเห็นตลอดว่าค้างส่งกี่รายการ</p>
+      </div>
+      <div class="card prop"><span class="num">4</span>
+        <h3>ปิดข้อบกพร่องต้องมีหลักฐาน</h3>
+        <p>ต้องอ้างอิงผลตรวจซ้ำที่จุดเดียวกัน มีหลักฐานแนบ และเกิดขึ้นหลังการเปิดข้อบกพร่องนั้น ช่างภาคสนามปิด NCR ของตัวเองไม่ได้</p>
+      </div>
+      <div class="card prop"><span class="num">5</span>
+        <h3>ไม่ตัดข้อมูลทิ้งเงียบ ๆ</h3>
+        <p>ต้นแบบเดิมแสดงเพียง 300 จุดแรกจาก 1,000 จุด ซึ่งเท่ากับซ่อนข้อมูลจากคณะกรรมการ ระบบนี้แบ่งหน้าจริงและรายงานจำนวนที่แท้จริงเสมอ</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2 class="sec">ทำงานได้แม้ไม่มีสัญญาณ</h2>
+    <p class="seclead">จุดที่ต้องไปตรวจ คือจุดที่เครือข่ายอาจยังไม่ทำงาน ระบบจึงออกแบบให้บันทึกได้ก่อนแล้วค่อยส่ง</p>
+    <div class="card pad">
+      <p style="margin:0 0 12px">
+        ช่างกดบันทึก ผลตรวจและรูปเข้าคิวใน IndexedDB ทันทีโดยไม่รอเครือข่าย
+        Service Worker ทำให้เปิดแอปได้แม้ออฟไลน์ รูปถูกย่อเหลือด้านยาว 1600px ก่อนเข้าคิว
+        เมื่อสัญญาณกลับมา คิวจะถูกส่งอัตโนมัติ และเพราะเซิร์ฟเวอร์ทำ upsert ตาม <code>clientUuid</code>
+        การส่งซ้ำจึงปลอดภัยเสมอ
+      </p>
+      <div class="stack">
+        <span class="tag">Express + TypeScript</span>
+        <span class="tag">Prisma + PostgreSQL 17</span>
+        <span class="tag">ES modules · ไม่มี bundler</span>
+        <span class="tag">Service Worker + IndexedDB</span>
+        <span class="tag">pdfmake + ฟอนต์ Sarabun</span>
+        <span class="tag">Vitest · 99 tests</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div style="font-weight:600;color:#fff;margin-bottom:5px">ระบบสนับสนุนการตรวจรับเครือข่าย Wi-Fi 1,000 จุด</div>
+    <div>มหาวิทยาลัยราชภัฏพิบูลสงคราม ·
+      <a href="https://github.com/zoommeeting66/psru-wifi-acceptance">psru-wifi-acceptance</a></div>
+    <div style="margin-top:11px;opacity:.75;font-size:13px">
+      ตัวเลขและรายการทั้งหมดในหน้านี้เป็นข้อมูลสมมติเพื่อการนำเสนอ ไม่ใช่ผลการตรวจรับจริงของโครงการใด
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
