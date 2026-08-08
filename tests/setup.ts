@@ -9,5 +9,16 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-process.env.DATABASE_URL =
+const url =
   process.env.TEST_DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/psru_wifi_test";
+
+// resetDb() TRUNCATEs every table between tests. Refuse to run against anything
+// that is not obviously the throwaway test database — a typo in TEST_DATABASE_URL
+// would otherwise destroy the real registry and its evidence records in silence.
+if (!/_test(\?|$)/.test(url)) {
+  throw new Error(
+    `Refusing to run tests: TEST_DATABASE_URL must name a database ending in "_test" (got "${url.replace(/\/\/[^@]*@/, "//***@")}"). The suite truncates every table.`
+  );
+}
+
+process.env.DATABASE_URL = url;

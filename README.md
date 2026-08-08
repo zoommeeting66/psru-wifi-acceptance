@@ -41,12 +41,28 @@
 
 ```bash
 npm install
-cp .env.example .env          # แล้วแก้ค่าให้ตรงกับเครื่องคุณ
-createdb psru_wifi            # และ psru_wifi_test สำหรับรันเทสต์
+cp .env.example .env    # แล้วแก้ DATABASE_URL / TEST_DATABASE_URL ให้ตรงกับเครื่องคุณ
+```
+
+สร้างฐานข้อมูลสองชุด (ชุดหลักและชุดสำหรับรันเทสต์)
+
+```bash
+psql -U postgres -c "CREATE DATABASE psru_wifi;" -c "CREATE DATABASE psru_wifi_test;"
+```
+
+> บน Windows หาก `psql` ไม่อยู่ใน PATH ให้เรียกด้วยพาธเต็ม
+> เช่น `"C:\Program Files\PostgreSQL\17\bin\psql.exe"`
+
+จากนั้น
+
+```bash
 npx prisma db push && npx prisma generate
 npm run db:seed
 npm run dev
 ```
+
+`npm run db:seed` รันซ้ำได้อย่างปลอดภัย — ถ้ามีโครงการอยู่แล้วจะข้ามการสร้างข้อมูลตั้งต้น
+และอัปเดตเฉพาะบัญชีผู้ใช้ หากต้องการเริ่มใหม่ทั้งหมดให้ลบและสร้างฐานข้อมูลใหม่
 
 - เดสก์ท็อป (กรรมการ): `http://localhost:3200/`
 - มือถือ (ช่างภาคสนาม): `http://localhost:3200/m`

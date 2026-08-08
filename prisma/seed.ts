@@ -40,33 +40,50 @@ async function main() {
     });
   }
 
-  const project = await prisma.project.create({
-    data: {
-      name: "โครงการติดตั้งระบบเครือข่ายไร้สาย 1,000 จุด",
-      contractNo: "สัญญาเลขที่ (ระบุภายหลัง)",
-      torRef: "TOR โครงการ Wi-Fi 1,000 จุด",
-      totalPoints: 1000,
-      criteria: { create: CRITERIA },
-      buildings: { create: BUILDINGS },
-    },
-    include: { buildings: true },
+  // ห้ามสร้างโครงการซ้ำ: Criteria ไม่ได้ผูกกับโครงการตอนคำนวณผล
+  // ถ้ามีสองชุด ทุกจุดจะถูกเทียบกับเกณฑ์ 8 ข้อที่มี key ซ้ำกัน
+  // และหน้ามือถือจะขึ้นช่องกรอกซ้ำสองเท่า
+  const existing = await prisma.project.findFirst({ select: { id: true, name: true } });
+  if (existing) {
+    console.log(
+      `พบโครงการอยู่แล้ว (${existing.name}) — ข้ามการสร้างข้อมูลตั้งต้น\n` +
+        `บัญชีผู้ใช้ถูกอัปเดตเรียบร้อยแล้ว\n` +
+        `หากต้องการเริ่มใหม่ทั้งหมด ให้ลบและสร้างฐานข้อมูลใหม่ก่อน แล้วรัน prisma db push อีกครั้ง`
+    );
+    return;
+  }
+
+  // สร้างทั้งชุดในทรานแซกชันเดียว ล้มกลางทางต้องไม่เหลือโครงการค้างที่ไม่มีจุดติดตั้ง
+  const created = await prisma.$transaction(async (tx) => {
+    const project = await tx.project.create({
+      data: {
+        name: "โครงการติดตั้งระบบเครือข่ายไร้สาย 1,000 จุด",
+        contractNo: "สัญญาเลขที่ (ระบุภายหลัง)",
+        torRef: "TOR โครงการ Wi-Fi 1,000 จุด",
+        totalPoints: 1000,
+        criteria: { create: CRITERIA },
+        buildings: { create: BUILDINGS },
+      },
+      include: { buildings: true },
+    });
+
+    const buildings = project.buildings;
+    const points = Array.from({ length: 1000 }, (_, i) => {
+      const n = i + 1;
+      const building = buildings[i % buildings.length];
+      return {
+        code: `AP-${String(n).padStart(4, "0")}`,
+        buildingId: building.id,
+        floor: `ชั้น ${(i % 6) + 1}`,
+        room: `พื้นที่ ${String((i % 50) + 1).padStart(2, "0")}`,
+        deviceModel: "AP รุ่นตามบัญชีส่งมอบ",
+      };
+    });
+    await tx.point.createMany({ data: points });
+    return buildings.length;
   });
 
-  const buildings = project.buildings;
-  const points = Array.from({ length: 1000 }, (_, i) => {
-    const n = i + 1;
-    const building = buildings[i % buildings.length];
-    return {
-      code: `AP-${String(n).padStart(4, "0")}`,
-      buildingId: building.id,
-      floor: `ชั้น ${(i % 6) + 1}`,
-      room: `พื้นที่ ${String((i % 50) + 1).padStart(2, "0")}`,
-      deviceModel: "AP รุ่นตามบัญชีส่งมอบ",
-    };
-  });
-  await prisma.point.createMany({ data: points });
-
-  console.log(`Seeded ${USERS.length} users, ${buildings.length} buildings, ${CRITERIA.length} criteria, 1000 points.`);
+  console.log(`Seeded ${USERS.length} users, ${created} buildings, ${CRITERIA.length} criteria, 1000 points.`);
 }
 
 main()
